@@ -2,9 +2,15 @@
 
 This script rotates archived files by user specified pattern.
 
-Usage: ``./${0##*/} [-c -r -v --dry-run] -p=Path [-s=searchpattern] [-h=…|-d=…|-w=…|-m=…|-y=…] ``
+Usage: 
+
+``./${0##*/} [-c -r -v --dry-run] -p=Path [-s=searchpattern] [-h=…|-d=…|-w=…|-m=…|-y=…] ``
+
 Example:
-./${0##*/} -crv -p="/volume1/home/MySQL_Backup/" --searchpattern="WordPress_*" --filesperhour="*x48" -d=24x7 -m="1x*"
+
+``./${0##*/} -crv -p="/volume1/home/MySQL_Backup/" --searchpattern="WordPress_*" --filesperhour="*x48" -d=24x7 -m="1x*" ```
+
+
 - The specification for the number of files and time periods is separated 
   by an "x" [DIGITxDIGIT eg. -h=7x6 for 7 files per hour for 6 hours].
 - The time periods are added together. This means that the next larger 
@@ -15,7 +21,8 @@ Example:
 - Intervals are dynamic. For example, if 12 files are to be kept per year, 
   and all files of this period are from one day, 12 files will also be kept, 
   although they have a disproportionately small time interval.
-    -p= --path=             Path to parent directory
+
+``    -p= --path=             Path to parent directory``
 Arguments for the count of kept files and count of the respective period:
     -h= --filesperhour=     how many files per how many hours [eg. 60x24 means: 24 hours with 60 files each]
     -d= --filesperday=      how many files per how many days

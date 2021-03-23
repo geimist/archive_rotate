@@ -18,8 +18,9 @@ This script rotates archived files by user specified pattern.
 - Older files outside the defined period are deleted if parameters 
   -c / --cleanig are set, otherwise the files are ignored.
 - Periods and counts can also be defined as wildcards [*].
-- Intervals are dynamic. For example, if 12 files are to be kept per year, 
-  and all files of this period are from one day, 12 files will also be kept, 
+- LIMITATION: Intervals are dynamic! 
+  For example, if 12 files are to be kept per year, and all files 
+  of this period are from one day, 12 files will also be kept, 
   although they have a disproportionately small time interval.
 
 ```    -p= --path=             Path to parent directory```

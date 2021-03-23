@@ -2,11 +2,11 @@
 
 This script rotates archived files by user specified pattern.
 
-## Usage: 
+### Usage: 
 
 ``./archive_rotate.sh [-c -r -v --dry-run] -p=Path [-s=searchpattern] [-h=…|-d=…|-w=…|-m=…|-y=…] ``
 
-## Example:
+### Example:
 
 ``./archive_rotate.sh -crv -p="/volume1/home/MySQL_Backup/" --searchpattern="WordPress_*" --filesperhour="*x48" -d=24x7 -m="1x*" ``
 
@@ -30,13 +30,15 @@ Arguments for the count of kept files and count of the respective period:
     -d= --filesperday=      how many files per how many days
     -w= --filesperweek=     how many files per how many weeks
     -m= --filespermonth=    how many files per how many month
-    -y= --filesperyear=     how many files per how many years ```
+    -y= --filesperyear=     how many files per how many years 
+    ```
 
 optional arguments:
 
-    -s= --searchpattern=    only files who match pattern are proceeded 
+```    -s= --searchpattern=    only files who match pattern are proceeded 
     -r  --recursive         also searches in subdirectories
     -v  --verbose           explain what is being done
     -c  --cleaning          delete files out of range
         --dry-run           perform a trial run with no changes made
     -h  --help              display this help and exit
+```

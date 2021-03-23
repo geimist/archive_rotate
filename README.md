@@ -31,9 +31,11 @@ Arguments for the count of kept files and count of the respective period:
     -w= --filesperweek=     how many files per how many weeks
     -m= --filespermonth=    how many files per how many month
     -y= --filesperyear=     how many files per how many years 
-    ```
+```
+
 
 optional arguments:
+
 
 ```    -s= --searchpattern=    only files who match pattern are proceeded 
     -r  --recursive         also searches in subdirectories

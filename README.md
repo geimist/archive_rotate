@@ -24,6 +24,7 @@ This script rotates archived files by user specified pattern.
 
 
 ```    -p= --path=             Path to parent directory
+
 ```
 
 

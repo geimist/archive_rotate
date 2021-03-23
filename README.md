@@ -22,8 +22,10 @@ This script rotates archived files by user specified pattern.
   and all files of this period are from one day, 12 files will also be kept, 
   although they have a disproportionately small time interval.
 
+
 ```    -p= --path=             Path to parent directory
 ```
+
 
 Arguments for the count of kept files and count of the respective period:
 

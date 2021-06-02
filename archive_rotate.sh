@@ -1,7 +1,7 @@
 #!/bin/bash
 #################################################################################
-#   2021-03-17                                                                  #
-#   v1.0.0                                                                      #
+#   2021-06-02                                                                  #
+#   v1.0.1                                                                      #
 #   © 2021 by geimist                                                           #
 #################################################################################
 
@@ -205,6 +205,12 @@ LoopFunction () {
 
         if [[ "${PERIODS}" = "*" ]] ; then
             OldestFile=$(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f -printf '%T+\n' | sort | head -n 1 | awk -F. '{print $1}' | sed -e 's/+/ /g')
+            if [[ $(date -d "-${TotalHours} hours" +%s) -lt $(date -d "$OldestFile" +%s) ]]; then
+                [ $verbose = 1 ] && printf "         ➜ wildcard for $Range (Rage is larger than the oldest file - range skipped)"
+                PERIODS=0
+                abort=1
+                return
+            fi
             PERIODS=$(( $( DateDiff "$(date -d "-${TotalHours} hours" +"%Y-%m-%d %H:%M:%S")" "$OldestFile" ) / $Factor +1 ))
             abort=1
         fi

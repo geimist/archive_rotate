@@ -7,20 +7,23 @@
 
 make_dummy () {
     # create dummy files for test
-    # aktivate this function by removing the # at the line below of this function: <make_dummy; exit>
+    # to aktivate this function remove or disable the next line
+#return
     # adjust the following 3 parameters:
     DummyDir="/<FULL_PATH>"
     MaxHours=24
     IntervallHours=1
     
-    printf "\n---------------------------------------------------------------------------"
+    printf "\n---------------------------------------------------------------------------\n"
+    [ ! -d "${DummyDir}" ] && echo "DummyDir is not a valid directory - EXIT" && exit 1
     houre_array=($(seq -s " " 1 ${IntervallHours} ${MaxHours}))
     for houre in ${houre_array[@]}; do
         touch -t $(date -d "-${houre} hours" +%Y%m%d%H%M) "${DummyDir}/$(date -d "-${houre} hours" +%Y-%m-%d_%H-%M).dummy"
     done
-    printf "\n---------------------------------------------------------------------------"
+    printf "\n---------------------------------------------------------------------------\n"
+    exit
 }
-# make_dummy; exit
+make_dummy
 
 #################################################################################
 #   MAIN SCRIPT                                                                 #
@@ -357,3 +360,4 @@ exit 0
 #   - initial release
 # 1.1.0
 #   - implemented count of total size and deleted size
+#   - implemented a function to create dummy files for testing

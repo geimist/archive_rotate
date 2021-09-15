@@ -1,15 +1,36 @@
 #!/bin/bash
 #################################################################################
-#   2021-06-02                                                                  #
-#   v1.0.1                                                                      #
+#   2021-09-15                                                                  #
+#   v1.1.0                                                                      #
 #   © 2021 by geimist                                                           #
+#################################################################################
+
+make_dummy () {
+    # create dummy files for test
+    # aktivate this function by removing the # at the line below of this function: <make_dummy; exit>
+    # adjust the following 3 parameters:
+    DummyDir="/<FULL_PATH>"
+    MaxHours=24
+    IntervallHours=1
+    
+    printf "\n---------------------------------------------------------------------------"
+    houre_array=($(seq -s " " 1 ${IntervallHours} ${MaxHours}))
+    for houre in ${houre_array[@]}; do
+        touch -t $(date -d "-${houre} hours" +%Y%m%d%H%M) "${DummyDir}/$(date -d "-${houre} hours" +%Y-%m-%d_%H-%M).dummy"
+    done
+    printf "\n---------------------------------------------------------------------------"
+}
+# make_dummy; exit
+
+#################################################################################
+#   MAIN SCRIPT                                                                 #
 #################################################################################
 
 # Usage info
 show_help () {
 cat << EOF
 This script rotates archived files by user specified pattern.
-v1.0.0 © 2021 by geimist
+v1.1.0 © 2021 by geimist
 
 Usage: ./${0##*/} [-c -r -v --dry-run] -p=Path [-s=searchpattern] [-h=…|-d=…|-w=…|-m=…|-y=…]
 
@@ -37,11 +58,12 @@ Arguments for the count of kept files and count of the respective period:
     -y= --filesperyear=     how many files per how many years
 
 optional arguments:
-    -s= --searchpattern=    only files who match pattern are proceeded 
-    -r  --recursive         also searches in subdirectories
-    -v  --verbose           explain what is being done
-    -c  --cleaning          delete files out of range
         --dry-run           perform a trial run with no changes made
+    -c  --cleaning          delete files out of range
+        --quiet             silent mode
+    -r  --recursive         also searches in subdirectories
+    -s= --searchpattern=    only files who match pattern are proceeded 
+    -v  --verbose           explain what is being done
 
     -h  --help              display this help and exit
 
@@ -59,6 +81,9 @@ abort=0
 TotalCountKept=0
 TotalCountDel=0
 recursive="-maxdepth 1"
+quiet=0
+DeletedBytes=0
+TotalFileSize=0
 
 # read arguments
 if [ -z "$*" ]; then
@@ -133,6 +158,10 @@ for i in "$@" ; do
         purge=1
         shift
         ;;
+        -q|--quiet)
+        quiet=1
+        shift
+        ;;
         -rv|-vr)
         recursive=
         verbose=1
@@ -165,24 +194,33 @@ for i in "$@" ; do
 done
 
 WORKDIR=${WORKDIR%/}/
+
+# TotalFileCount:
 TotalFileCount=$(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f | grep -v "^$" | wc -l )
 
-echo "PATH                  = $WORKDIR"
-echo "SEARCHPATTERN         = $SEARCHPATTERN"
-echo "VERBOSE               = yes"
-[ -n "$recursive" ] && echo "SEARCH IN SUB DIRS    = no"
-[ -z "$recursive" ] && echo "SEARCH IN SUB DIRS    = yes"
-[ "$purge" = 0 ] && echo "FILES OUT OF RANGE    = kept"
-[ "$purge" = 1 ] && echo "FILES OUT OF RANGE    = deleted"
-[ "$DryRun" = 1 ] && printf "\nINFO: A dry run is performed - no data is changed"
-echo -e
-[ -n "$X_FILE_PER_X_HOURE" ] && echo "  $(echo "$X_FILE_PER_X_HOURE" | awk -Fx '{print $1}') FILES PER HOURE [$(echo "$X_FILE_PER_X_HOURE" | awk -Fx '{print $2}')x]"
-[ -n "$X_FILE_PER_X_DAY" ] && echo "  $(echo "$X_FILE_PER_X_DAY" | awk -Fx '{print $1}') FILES PER DAY [$(echo "$X_FILE_PER_X_DAY" | awk -Fx '{print $2}')x]"
-[ -n "$X_FILE_PER_X_WEEK" ] && echo "  $(echo "$X_FILE_PER_X_WEEK" | awk -Fx '{print $1}') FILES PER WEEK [$(echo "$X_FILE_PER_X_WEEK" | awk -Fx '{print $2}')x]"
-[ -n "$X_FILE_PER_X_MONTH" ] && echo "  $(echo "$X_FILE_PER_X_MONTH" | awk -Fx '{print $1}') FILES PER MONTH [$(echo "$X_FILE_PER_X_MONTH" | awk -Fx '{print $2}')x]"
-[ -n "$X_FILE_PER_X_YEAR" ] && echo "  $(echo "$X_FILE_PER_X_YEAR" | awk -Fx '{print $1}') FILES PER YEAR [$(echo "$X_FILE_PER_X_YEAR" | awk -Fx '{print $2}')x]"
+# TotalFileSize:
+for i in $(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f | grep -v "^$"); do
+     [ -f "$i" ] && TotalFileSize=$[TotalFileSize + $(stat -c %s "$i")]
+done
 
-printf "\n---------------------------------------------------------------------------"
+# task overview:
+if [ $quiet = 0 ]; then
+    echo "PATH                  = $WORKDIR"
+    echo "SEARCHPATTERN         = $SEARCHPATTERN"
+    [ "$verbose" = 1 ] && echo "VERBOSE               = yes"
+    [ -n "$recursive" ] && echo "SEARCH IN SUB DIRS    = no"
+    [ -z "$recursive" ] && echo "SEARCH IN SUB DIRS    = yes"
+    [ "$purge" = 0 ] && echo "FILES OUT OF RANGE    = kept"
+    [ "$purge" = 1 ] && echo "FILES OUT OF RANGE    = deleted"
+    [ "$DryRun" = 1 ] && printf "\nINFO: A dry run is performed - no data is changed"
+    echo -e
+    [ -n "$X_FILE_PER_X_HOURE" ] && echo "  $(echo "$X_FILE_PER_X_HOURE" | awk -Fx '{print $1}') FILES PER HOURE [$(echo "$X_FILE_PER_X_HOURE" | awk -Fx '{print $2}')x]"
+    [ -n "$X_FILE_PER_X_DAY" ] && echo "  $(echo "$X_FILE_PER_X_DAY" | awk -Fx '{print $1}') FILES PER DAY [$(echo "$X_FILE_PER_X_DAY" | awk -Fx '{print $2}')x]"
+    [ -n "$X_FILE_PER_X_WEEK" ] && echo "  $(echo "$X_FILE_PER_X_WEEK" | awk -Fx '{print $1}') FILES PER WEEK [$(echo "$X_FILE_PER_X_WEEK" | awk -Fx '{print $2}')x]"
+    [ -n "$X_FILE_PER_X_MONTH" ] && echo "  $(echo "$X_FILE_PER_X_MONTH" | awk -Fx '{print $1}') FILES PER MONTH [$(echo "$X_FILE_PER_X_MONTH" | awk -Fx '{print $2}')x]"
+    [ -n "$X_FILE_PER_X_YEAR" ] && echo "  $(echo "$X_FILE_PER_X_YEAR" | awk -Fx '{print $1}') FILES PER YEAR [$(echo "$X_FILE_PER_X_YEAR" | awk -Fx '{print $2}')x]"
+    printf "\n---------------------------------------------------------------------------"
+fi
 
 DateDiff () {
 #################################################################################
@@ -233,6 +271,7 @@ LoopFunction () {
                         CountSkip=$(( $CountSkip + 1))
                     else
                         [ $verbose = 1 ] && echo "    rm   ➜ $line"
+                        DeletedBytes=$(($DeletedBytes+$(stat -c %s "$line")))
                         [ $DryRun = 0 ] &&  rm -f "$line"
                         TotalCountDel=$(($TotalCountDel + 1))
                     fi
@@ -309,7 +348,6 @@ if [ "$purge" = 1 ] && [ $abort = 0 ] ; then
     done
 fi
 
-
-printf "\n\n$TotalCountDel of $TotalFileCount files are removed$([ $DryRun = 1 ] && echo " [dry run was performed - no files were deleted]").\n\nfinish :-)\n"
+[ $quiet = 0 ] && printf "\n\n$TotalCountDel files [$(numfmt --to=si --suffix=B $DeletedBytes)] of $TotalFileCount files [$(numfmt --to=si --suffix=B $TotalFileSize)] are removed$([ $DryRun = 1 ] && echo " [dry run was performed - no files were deleted]").\n\nfinish :-)\n"
 
 exit 0

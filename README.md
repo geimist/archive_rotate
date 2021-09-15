@@ -43,5 +43,5 @@ optional arguments:
     -v  --verbose           explain what is being done
     -c  --cleaning          delete files out of range
         --dry-run           perform a trial run with no changes made
-    -h  --help              display this help and exit
+    -h  --help              display help and exit
 ```

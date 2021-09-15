@@ -8,7 +8,7 @@
 make_dummy () {
     # create dummy files for test
     # to aktivate this function remove or disable the next line
-#return
+return
     # adjust the following 3 parameters:
     DummyDir="/<FULL_PATH>"
     MaxHours=24

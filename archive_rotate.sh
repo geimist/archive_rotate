@@ -351,3 +351,9 @@ fi
 [ $quiet = 0 ] && printf "\n\n$TotalCountDel files [$(numfmt --to=si --suffix=B $DeletedBytes)] of $TotalFileCount files [$(numfmt --to=si --suffix=B $TotalFileSize)] are removed$([ $DryRun = 1 ] && echo " [dry run was performed - no files were deleted]").\n\nfinish :-)\n"
 
 exit 0
+
+# changelog:
+# 1.0.0
+#   - initial release
+# 1.1.0
+#   - implemented count of total size and deleted size

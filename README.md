@@ -27,7 +27,8 @@ This script rotates archived files by user specified pattern.
 
 Arguments for the count of kept files and count of the respective period:
 
-```    -h= --filesperhour=     how many files per how many hours [eg. 60x24 means: 24 hours with 60 files each]
+```
+    -h= --filesperhour=     how many files per how many hours [eg. 60x24 means: 24 hours with 60 files each]
     -d= --filesperday=      how many files per how many days
     -w= --filesperweek=     how many files per how many weeks
     -m= --filespermonth=    how many files per how many month

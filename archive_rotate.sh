@@ -15,7 +15,8 @@ return
     IntervallHours=1
     
     printf "\n---------------------------------------------------------------------------\n"
-    [ ! -d "${DummyDir}" ] && echo "DummyDir is not a valid directory - EXIT" && exit 1
+#   [ ! -d "${DummyDir}" ] && echo "DummyDir is not a valid directory - EXIT" && exit 1
+    [ ! -d "${DummyDir}" ] && echo "DummyDir is not a valid directory - create it" && mkdir -p "$DummyDir"
     houre_array=($(seq -s " " 1 ${IntervallHours} ${MaxHours}))
     for houre in ${houre_array[@]}; do
         touch -t $(date -d "-${houre} hours" +%Y%m%d%H%M) "${DummyDir}/$(date -d "-${houre} hours" +%Y-%m-%d_%H-%M).dummy"

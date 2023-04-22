@@ -3,6 +3,11 @@
 #   2021-09-15                                                                  #
 #   v1.1.0                                                                      #
 #   © 2021 ArchiveRotate by geimist                                             #
+#                                                                               #
+#   This script is completely parameter controlled and                          #
+#   therefore needs no customization.                                           #
+#                                                                               #
+#   show help: ./archive_rotate.sh -h                                           #
 #################################################################################
 
 make_dummy () {

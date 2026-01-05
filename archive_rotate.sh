@@ -1,18 +1,16 @@
 #!/bin/bash
+# shellcheck disable=SC2034,SC2086,SC2317,2329,2125
+version="v1.2.0"
 #################################################################################
-#   2021-09-15                                                                  #
-#   v1.1.0                                                                      #
-#   © 2021 ArchiveRotate by geimist                                             #
-#                                                                               #
-#   This script is completely parameter controlled and                          #
-#   therefore needs no customization.                                           #
-#                                                                               #
-#   show help: ./archive_rotate.sh -h                                           #
+#   2025-12-26                                                                  #
+#   © 2026 by geimist                                                           #
 #################################################################################
+
+# ./archive_rotate.sh -s=*.odb -h=*x72 -d=1x60 -m=1x* -p="/volume1/TEMP/SICHERUNGSKOPIEN/" -v --dry-run
 
 make_dummy () {
     # create dummy files for test
-    # to aktivate this function remove or disable the next line "return"
+    # to aktivate this function remove or disable the next line
 return
     # adjust the following 3 parameters:
     DummyDir="/<FULL_PATH>"
@@ -20,11 +18,11 @@ return
     IntervallHours=1
     
     printf "\n---------------------------------------------------------------------------\n"
-#   [ ! -d "${DummyDir}" ] && echo "DummyDir is not a valid directory - EXIT" && exit 1
-    [ ! -d "${DummyDir}" ] && echo "DummyDir is not a valid directory - create it" && mkdir -p "$DummyDir"
-    houre_array=($(seq -s " " 1 ${IntervallHours} ${MaxHours}))
-    for houre in ${houre_array[@]}; do
-        touch -t $(date -d "-${houre} hours" +%Y%m%d%H%M) "${DummyDir}/$(date -d "-${houre} hours" +%Y-%m-%d_%H-%M).dummy"
+    [ ! -d "${DummyDir}" ] && echo "{DummyDir} is not a valid directory - create it" && mkdir -p "${DummyDir}"
+
+    IFS=' ' read -ra houre_array <<< "$(seq -s ' ' 1 "${IntervallHours}" "${MaxHours}")"
+    for houre in "${houre_array[@]}"; do
+        touch -t "$(date -d "-${houre}" hours +%Y%m%d%H%M)" "${DummyDir}/$(date -d "-${houre}" hours +%Y-%m-%d_%H-%M).dummy"
     done
     printf "\n---------------------------------------------------------------------------\n"
     exit
@@ -39,7 +37,7 @@ make_dummy
 show_help () {
 cat << EOF
 This script rotates archived files by user specified pattern.
-v1.1.0 © 2021 by geimist
+v1.2.0 © 2026 by geimist
 
 Usage: ./${0##*/} [-c -r -v --dry-run] -p=Path [-s=searchpattern] [-h=…|-d=…|-w=…|-m=…|-y=…]
 
@@ -82,12 +80,10 @@ exit 1
 
 verbose=0
 TotalHours=0
-LastTask=0
 SEARCHPATTERN=*
 purge=0
 DryRun=0
 abort=0
-TotalCountKept=0
 TotalCountDel=0
 recursive="-maxdepth 1"
 quiet=0
@@ -113,7 +109,7 @@ for i in "$@" ; do
         ;;
         -h=*|--filesperhour=*)
         X_FILE_PER_X_HOURE="${i#*=}"
-        if ! egrep -q '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_HOURE}" ; then
+        if ! grep -qE '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_HOURE}" ; then
             echo "ERROR - false syntax [-h=${X_FILE_PER_X_HOURE} / --filesperhour=${X_FILE_PER_X_HOURE}]"
             exit 1
         fi
@@ -121,7 +117,7 @@ for i in "$@" ; do
         ;;
         -d=*|--filesperday=*)
         X_FILE_PER_X_DAY="${i#*=}"
-        if ! egrep -q '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_DAY}" ; then
+        if ! grep -qE '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_DAY}" ; then
             echo "ERROR - false syntax [-h=${X_FILE_PER_X_DAY} / --filesperhour=${X_FILE_PER_X_DAY}]"
             exit 1
         fi
@@ -129,7 +125,7 @@ for i in "$@" ; do
         ;;
         -w=*|--filesperweek=*)
         X_FILE_PER_X_WEEK="${i#*=}"
-        if ! egrep -q '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_WEEK}" ; then
+        if ! grep -qE '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_WEEK}" ; then
             echo "ERROR - false syntax [-h=${X_FILE_PER_X_WEEK} / --filesperhour=${X_FILE_PER_X_WEEK}]"
             exit 1
         fi
@@ -137,7 +133,7 @@ for i in "$@" ; do
         ;;
         -m=*|--filespermonth=*)
         X_FILE_PER_X_MONTH="${i#*=}"
-        if ! egrep -q '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_MONTH}" ; then
+        if ! grep -qE '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_MONTH}" ; then
             echo "ERROR - false syntax [-h=${X_FILE_PER_X_MONTH} / --filesperhour=${X_FILE_PER_X_MONTH}]"
             exit 1
         fi
@@ -145,7 +141,7 @@ for i in "$@" ; do
         ;;
         -y=*|--filesperyear=*)
         X_FILE_PER_X_YEAR="${i#*=}"
-        if ! egrep -q '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_YEAR}" ; then
+        if ! grep -qE '([0-9]{1,}|\*)x([0-9]|\*){1,}' <<< "${X_FILE_PER_X_YEAR}" ; then
             echo "ERROR - false syntax [-h=${X_FILE_PER_X_YEAR} / --filesperhour=${X_FILE_PER_X_YEAR}]"
             exit 1
         fi
@@ -202,15 +198,40 @@ for i in "$@" ; do
     esac
 done
 
+# DEBUG
+#DryRun=1
+
+
+
+# Calculate TotalHours
+TotalHours=0
+[ -n "${X_FILE_PER_X_HOURE}" ] && periods_val=$(echo "${X_FILE_PER_X_HOURE}" | awk -Fx '{print $2}') && if [[ "$periods_val" =~ ^[0-9]+$ ]]; then TotalHours=$(( TotalHours + periods_val * 1 )); else TotalHours=999999999; fi
+[ -n "${X_FILE_PER_X_DAY}" ] && periods_val=$(echo "${X_FILE_PER_X_DAY}" | awk -Fx '{print $2}') && if [[ "$periods_val" =~ ^[0-9]+$ ]]; then TotalHours=$(( TotalHours + periods_val * 24 )); else TotalHours=999999999; fi
+[ -n "${X_FILE_PER_X_WEEK}" ] && periods_val=$(echo "${X_FILE_PER_X_WEEK}" | awk -Fx '{print $2}') && if [[ "$periods_val" =~ ^[0-9]+$ ]]; then TotalHours=$(( TotalHours + periods_val * 168 )); else TotalHours=999999999; fi
+[ -n "${X_FILE_PER_X_MONTH}" ] && periods_val=$(echo "${X_FILE_PER_X_MONTH}" | awk -Fx '{print $2}') && if [[ "$periods_val" =~ ^[0-9]+$ ]]; then TotalHours=$(( TotalHours + periods_val * 730 )); else TotalHours=999999999; fi
+[ -n "${X_FILE_PER_X_YEAR}" ] && periods_val=$(echo "${X_FILE_PER_X_YEAR}" | awk -Fx '{print $2}') && if [[ "$periods_val" =~ ^[0-9]+$ ]]; then TotalHours=$(( TotalHours + periods_val * 8760 )); else TotalHours=999999999; fi
+
+# Set PERIODS variables
+PERIODS_H=""
+PERIODS_D=""
+PERIODS_W=""
+PERIODS_M=""
+PERIODS_Y=""
+[ -n "${X_FILE_PER_X_HOURE}" ] && PERIODS_H=$(echo "${X_FILE_PER_X_HOURE}" | awk -Fx '{print $2}')
+[ -n "${X_FILE_PER_X_DAY}" ] && PERIODS_D=$(echo "${X_FILE_PER_X_DAY}" | awk -Fx '{print $2}')
+[ -n "${X_FILE_PER_X_WEEK}" ] && PERIODS_W=$(echo "${X_FILE_PER_X_WEEK}" | awk -Fx '{print $2}')
+[ -n "${X_FILE_PER_X_MONTH}" ] && PERIODS_M=$(echo "${X_FILE_PER_X_MONTH}" | awk -Fx '{print $2}')
+[ -n "${X_FILE_PER_X_YEAR}" ] && PERIODS_Y=$(echo "${X_FILE_PER_X_YEAR}" | awk -Fx '{print $2}')
+
 WORKDIR=${WORKDIR%/}/
 
 # TotalFileCount:
 TotalFileCount=$(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f | grep -v "^$" | wc -l )
 
 # TotalFileSize:
-for i in $(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f | grep -v "^$"); do
-     [ -f "$i" ] && TotalFileSize=$[TotalFileSize + $(stat -c %s "$i")]
-done
+while IFS= read -r -d '' i; do
+    [ -f "${i}" ] && TotalFileSize=$((TotalFileSize + $(stat -c %s "${i}") ))
+done < <(find "${WORKDIR}" ${recursive} -type f -name "${SEARCHPATTERN}" -print0)
 
 # task overview:
 if [ $quiet = 0 ]; then
@@ -235,7 +256,6 @@ DateDiff () {
 #################################################################################
 #   this function returns the time difference of two passed data in hours       #
 #################################################################################
-
     d1=$(date -d "$1" +%s)
     d2=$(date -d "$2" +%s)
     echo $(( (d1 - d2) / 3600 ))
@@ -252,79 +272,66 @@ LoopFunction () {
 
         if [[ "${PERIODS}" = "*" ]] ; then
             OldestFile=$(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f -printf '%T+\n' | sort | head -n 1 | awk -F. '{print $1}' | sed -e 's/+/ /g')
-            if [[ $(date -d "-${TotalHours} hours" +%s) -lt $(date -d "$OldestFile" +%s) ]]; then
-                [ $verbose = 1 ] && printf "         ➜ wildcard for $Range (Rage is larger than the oldest file - range skipped)"
+            if [[ -n "$OldestFile" ]]; then
+                AvailableHours=$(( $( DateDiff "$(date -d "-${BaseHours} hours" +"%Y-%m-%d %H:%M:%S")" "$OldestFile" ) ))
+                PERIODS=$(( AvailableHours / $Factor + 1 ))
+                [[ $PERIODS -lt 0 ]] && PERIODS=0
+            else
                 PERIODS=0
-                abort=1
-                return
             fi
-            PERIODS=$(( $( DateDiff "$(date -d "-${TotalHours} hours" +"%Y-%m-%d %H:%M:%S")" "$OldestFile" ) / $Factor +1 ))
-            abort=1
         fi
 
-        while [ $PERIODS -ne $Loop1 ]; do
-            CheckPeriodMax=$(( $Loop1 * $Factor ))
+        while [ "${PERIODS}" -ne "${Loop1}" ]; do
+            CheckPeriodMin=$(( BaseHours + ($PERIODS * $Factor) - ($Loop1 * $Factor) ))
             Loop1=$(( $Loop1 + 1 ))
-            CheckPeriodMin=$(( $Loop1 * $Factor ))
-            FileList=$(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f -newermt "$(date -d "-$(( ${CheckPeriodMin} + $TotalHours )) hours" +"%Y-%m-%d %H:%M:%S")" ! -newermt "$(date -d "-$(( ${CheckPeriodMax} + $TotalHours )) hours" +"%Y-%m-%d %H:%M:%S")" -exec ls -1rt "{}" + | tac ) # | head -n -"${PER_DAY}" )
+            CheckPeriodMax=$(( BaseHours + ($PERIODS * $Factor) - ($Loop1 * $Factor) ))
+
+            # Abrunden der Zeitstempel auf den Anfang des Zeitraums auf volle Stunden
+            # https://chat.openai.com/share/c8db0e6c-e2e0-41b2-bbf5-70cc395d2ec2
+            RoundedMin=$(date -d "-${CheckPeriodMin} hours" +"%Y-%m-%d %H:00:00")
+            RoundedMax=$(date -d "-${CheckPeriodMax} hours" +"%Y-%m-%d %H:00:00")
+        # IDEE: vielleicht sollte hier die Rundung nicht nur auf Stunden basieren, sondern auf die aktuelle Range
+            FileList=$(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f -newermt "${RoundedMin}" ! -newermt "${RoundedMax}" -exec ls -1rt "{}" + | tac)
+
+        # ohne Rundung (original):
+        #   FileList=$(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f -newermt "$(date -d "-$(( ${CheckPeriodMin} + $TotalHours )) hours" +"%Y-%m-%d %H:%M:%S")" ! -newermt "$(date -d "-$(( ${CheckPeriodMax} + $TotalHours )) hours" +"%Y-%m-%d %H:%M:%S")" -exec ls -1rt "{}" + | tac ) # | head -n -"${PER_DAY}" )
+
             # finde alle Dateien mit einem bestimmten Suchstring (SEARCHPATTERN) neuer als Datum (-newermt) nicht neuer als Datum ( ! -newermt) nach Zeit sortiert (-exec ls -1rt "{}" +) in umgekehrter Reihenfolge ( tac)
-            count=$(echo "$FileList" | grep -v "^$" | wc -l )
-            if [[ $count -gt "${FILES_PER_PERIOD}" ]] ; then
-                IntervallSaveFile=$( echo | gawk "{print $count/${FILES_PER_PERIOD}}" )
-                [ $verbose = 1 ] && echo "  ➜ ${Loop1}th $Range from $PERIODS (task: keep ${FILES_PER_PERIOD} from $count / intend keeping every ${IntervallSaveFile}th file)"
-                CountSkip=0
-                Loop2=0 
+            count=$(echo "${FileList}" | grep -v "^$" | wc -l )
+            if [[ ${count} -gt "${FILES_PER_PERIOD}" ]] ; then
+                IntervallSaveFile=$( echo | gawk "{print ${count}/${FILES_PER_PERIOD}}" )
+                [ $verbose = 1 ] && echo "  ➜ ${Loop1}th ${Range} from ${PERIODS} (task: keep ${FILES_PER_PERIOD} from ${count} / intend keeping every ${IntervallSaveFile}th file)"
+                Loop2=0
                 while read -r line; do
-                    if $(echo "$( echo | gawk "{print $Loop2/$CountSkip}" 2>&1) $IntervallSaveFile" | awk '{exit ($1 <= $2)}') || [[ $Loop2 -eq 0 ]]; then    # Gleitkommavergleich via awk
-                        [ $verbose = 1 ] && echo "    kept ➜ $line"
-                        CountSkip=$(( $CountSkip + 1))
+                    if (( (Loop2 + 1) % IntervallSaveFile == 0 )); then
+                        [ ${verbose} = 1 ] && echo "    kept ➜ $line"
                     else
-                        [ $verbose = 1 ] && echo "    rm   ➜ $line"
-                        DeletedBytes=$(($DeletedBytes+$(stat -c %s "$line")))
-                        [ $DryRun = 0 ] &&  rm -f "$line"
+                        [ ${verbose} = 1 ] && echo "    rm   ➜ $line"
+                        DeletedBytes=$(($DeletedBytes+$(stat -c %s "${line}")))
+                        [ ${DryRun} = 0 ] &&  rm -f "${line}"
                         TotalCountDel=$(($TotalCountDel + 1))
                     fi
                     Loop2=$(( $Loop2 + 1))
-                done <<< "$FileList"
+                done <<< "${FileList}"
             else
-                [ $verbose = 1 ] && echo "  ➜ ${Loop1}th $Range from $PERIODS - existing files [$count] under limit [${FILES_PER_PERIOD}] - nothing to do …"
+                [ ${verbose} = 1 ] && echo "  ➜ ${Loop1}th ${Range} from ${PERIODS} - existing files [${count}] under limit [${FILES_PER_PERIOD}] - nothing to do …"
             fi
         done
 
-        [ $abort = 1 ] && [ $verbose = 1 ] && printf "\n         ➜ wildcard for $Range (larger intervals are not considered - script is aborted)"
+        [ ${abort} = 1 ] && [ ${verbose} = 1 ] && printf '\n         ➜ wildcard for %s (larger intervals are not considered - script is aborted)' "$Range"
     else
-        [ $verbose = 1 ] && echo "         ➜ wildcard or not defined (keep all)"
+        [ ${verbose} = 1 ] && echo "         ➜ wildcard or not defined (keep all)"
     fi
 }
 
-if [ -n "${X_FILE_PER_X_HOURE}" ] ; then
-    Range=houre
-    FILES_PER_PERIOD=$(echo "$X_FILE_PER_X_HOURE" | awk -Fx '{print $1}')
-    PERIODS=$(echo "$X_FILE_PER_X_HOURE" | awk -Fx '{print $2}')
-    Factor=1
-    [ $verbose = 1 ] && printf "\n\nrotated files of the last ${PERIODS} ${Range}s with ${FILES_PER_PERIOD} files each:\n\n"
+if [ -n "${X_FILE_PER_X_YEAR}" ] ; then
+    Range=year
+    FILES_PER_PERIOD=$(echo "$X_FILE_PER_X_YEAR" | awk -Fx '{print $1}')
+    PERIODS=$(echo "$X_FILE_PER_X_YEAR" | awk -Fx '{print $2}')
+    Factor=$((24 * 365))
+    BaseHours=$(( (PERIODS_H * 1) + (PERIODS_D * 24) + (PERIODS_W * 168) + (PERIODS_M * 730) ))
+    [ $verbose = 1 ] && printf '\n\nrotated files of the last %s %ss with %s files each:\n\n' "$PERIODS" "$Range" "$FILES_PER_PERIOD"
     LoopFunction
-    TotalHours=$(( $PERIODS * $Factor + $TotalHours ))
-fi
-
-if [ -n "${X_FILE_PER_X_DAY}" ] && [ $abort = 0 ] ; then
-    Range=day
-    FILES_PER_PERIOD=$(echo "$X_FILE_PER_X_DAY" | awk -Fx '{print $1}')
-    PERIODS=$(echo "$X_FILE_PER_X_DAY" | awk -Fx '{print $2}')
-    Factor=24
-    [ $verbose = 1 ] && printf "\n\nrotated files of the last ${PERIODS} ${Range}s with ${FILES_PER_PERIOD} files each:\n\n"
-    LoopFunction
-    TotalHours=$(( $PERIODS * $Factor + $TotalHours ))
-fi
-
-if [ -n "${X_FILE_PER_X_WEEK}" ] && [ $abort = 0 ] ; then
-    Range=week
-    FILES_PER_PERIOD=$(echo "$X_FILE_PER_X_WEEK" | awk -Fx '{print $1}')
-    PERIODS=$(echo "$X_FILE_PER_X_WEEK" | awk -Fx '{print $2}')
-    Factor=$((24 * 7))
-    [ $verbose = 1 ] && printf "\n\nrotated files of the last ${PERIODS} ${Range}s with ${FILES_PER_PERIOD} files each:\n\n"
-    LoopFunction
-    TotalHours=$(( $PERIODS * $Factor + $TotalHours ))
 fi
 
 if [ -n "${X_FILE_PER_X_MONTH}" ] && [ $abort = 0 ] ; then
@@ -332,32 +339,54 @@ if [ -n "${X_FILE_PER_X_MONTH}" ] && [ $abort = 0 ] ; then
     FILES_PER_PERIOD=$(echo "$X_FILE_PER_X_MONTH" | awk -Fx '{print $1}')
     PERIODS=$(echo "$X_FILE_PER_X_MONTH" | awk -Fx '{print $2}')
     Factor=$((24 * 365 / 12))
-    [ $verbose = 1 ] && printf "\n\nrotated files of the last ${PERIODS} ${Range}s with ${FILES_PER_PERIOD} files each:\n\n"
+    BaseHours=$(( (PERIODS_H * 1) + (PERIODS_D * 24) + (PERIODS_W * 168) ))
+    [ $verbose = 1 ] && printf '\n\nrotated files of the last %s %ss with %s files each:\n\n' "$PERIODS" "$Range" "$FILES_PER_PERIOD"
     LoopFunction
-    TotalHours=$(( $PERIODS * $Factor + $TotalHours ))
 fi
 
-if [ -n "${X_FILE_PER_X_YEAR}" ] && [ $abort = 0 ] ; then
-    Range=year
-    FILES_PER_PERIOD=$(echo "$X_FILE_PER_X_YEAR" | awk -Fx '{print $1}')
-    PERIODS=$(echo "$X_FILE_PER_X_YEAR" | awk -Fx '{print $2}')
-    Factor=$((24 * 365))
-    [ $verbose = 1 ] && printf "\n\nrotated files of the last ${PERIODS} ${Range}s with ${FILES_PER_PERIOD} files each:\n\n"
+if [ -n "${X_FILE_PER_X_WEEK}" ] && [ $abort = 0 ] ; then
+    Range=week
+    FILES_PER_PERIOD=$(echo "$X_FILE_PER_X_WEEK" | awk -Fx '{print $1}')
+    PERIODS=$(echo "$X_FILE_PER_X_WEEK" | awk -Fx '{print $2}')
+    Factor=$((24 * 7))
+    BaseHours=$(( (PERIODS_H * 1) + (PERIODS_D * 24) ))
+    [ $verbose = 1 ] && printf '\n\nrotated files of the last %s %ss with %s files each:\n\n' "$PERIODS" "$Range" "$FILES_PER_PERIOD"
     LoopFunction
-    TotalHours=$(( $PERIODS * $Factor + $TotalHours ))
 fi
 
-if [ "$purge" = 1 ] && [ $abort = 0 ] ; then
+if [ -n "${X_FILE_PER_X_DAY}" ] && [ $abort = 0 ] ; then
+    Range=day
+    FILES_PER_PERIOD=$(echo "$X_FILE_PER_X_DAY" | awk -Fx '{print $1}')
+    PERIODS=$(echo "$X_FILE_PER_X_DAY" | awk -Fx '{print $2}')
+    Factor=24
+    BaseHours=$(( PERIODS_H * 1 ))
+    [ $verbose = 1 ] && printf '\n\nrotated files of the last %s %ss with %s files each:\n\n' "$PERIODS" "$Range" "$FILES_PER_PERIOD"
+    LoopFunction
+fi
+
+if [ -n "${X_FILE_PER_X_HOURE}" ] && [ $abort = 0 ] ; then
+    Range=houre
+    FILES_PER_PERIOD=$(echo "${X_FILE_PER_X_HOURE}" | awk -Fx '{print $1}')
+    PERIODS=$(echo "${X_FILE_PER_X_HOURE}" | awk -Fx '{print $2}')
+    Factor=1
+    BaseHours=0
+    [ $verbose = 1 ] && printf '\n\nrotated files of the last %s %ss with %s files each:\n\n' "$PERIODS" "$Range" "$FILES_PER_PERIOD"
+    LoopFunction
+fi
+
+if [ "$purge" = 1 ] && [ $abort = 0 ] && [ $TotalHours -lt 100000 ] ; then
     [ $verbose = 1 ] && printf "\n\ndelete older files outside the defined period:\n\n"
     DelList=$(find "${WORKDIR}" ${recursive} -name "${SEARCHPATTERN}" -type f ! -newermt "$(date -d "-$TotalHours hours" +"%Y-%m-%d %H:%M:%S")" -exec ls -1rt "{}" + | tac)
     TotalCountDel=$(($TotalCountDel + $(echo "$DelList" | grep -v "^$" | wc -l )))
-    for line in $DelList ; do 
+    while IFS= read -r line; do
         [ $verbose = 1 ] && echo "    rm   ➜ $line"
         [ $DryRun = 0 ] && rm -f "$line"
-    done
+    done <<< "$DelList"
+elif [ "$purge" = 1 ] && [ $abort = 0 ] ; then
+    [ $verbose = 1 ] && printf "\n\nno delete of older files - unlimited period defined\n\n"
 fi
 
-[ $quiet = 0 ] && printf "\n\n$TotalCountDel files [$(numfmt --to=si --suffix=B $DeletedBytes)] of $TotalFileCount files [$(numfmt --to=si --suffix=B $TotalFileSize)] are removed$([ $DryRun = 1 ] && echo " [dry run was performed - no files were deleted]").\n\nfinish :-)\n"
+[ $quiet = 0 ] && printf "\n\n%s files [%s] of %s files [%s] are removed%s.\n\nfinish :-)\n" "$TotalCountDel" "$(numfmt --to=si --suffix=B $DeletedBytes)" "$TotalFileCount" "$(numfmt --to=si --suffix=B $TotalFileSize)" "$([ $DryRun = 1 ] && echo " [dry run was performed - no files were deleted]")"
 
 exit 0
 
@@ -367,3 +396,9 @@ exit 0
 # 1.1.0
 #   - implemented count of total size and deleted size
 #   - implemented a function to create dummy files for testing
+# 1.1.1
+#   - Es wird immer die älteste Datei einer Range erhalten um die nächste Range zu füllen
+#   - Zeit wird gerundet
+# 1.2.0
+#   - der Workarround aus Version 1.2.0 wurde entfernt
+#   - die Zeiträume werden jetzt rückwärts abgearbeitet um die korrekte Funktionsweise zu gewährleisten

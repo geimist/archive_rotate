@@ -46,3 +46,5 @@ optional arguments:
         --dry-run           perform a trial run with no changes made
     -h  --help              display help and exit
 ```
+
+![Badge](https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2Fgeimist%2Farchive_rotate&label=Visotors&icon=github&color=%23ffc107&message=&style=flat&tz=Europe%2FBerlin)
